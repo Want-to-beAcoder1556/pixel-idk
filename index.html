@@ -212,6 +212,38 @@
         /* Finish line visually on top row */
         .finish-line-row .cell-road { background-image: repeating-linear-gradient(45deg, #fff 0, #fff 5px, #000 5px, #000 10px); }
 
+        /* Debug Overlay */
+        #debug-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.75);
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            padding: 12px 16px;
+            border: 2px solid #00ff00;
+            border-radius: 4px;
+            pointer-events: none;
+            display: none;
+            min-width: 260px;
+            line-height: 1.6;
+        }
+        #debug-overlay .debug-title {
+            color: #ffcc00;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 4px;
+        }
+        #debug-overlay .debug-section {
+            color: #00ccff;
+            font-weight: bold;
+            margin-top: 6px;
+        }
+
         /* Arcade UI */
         #arcade-ui {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -229,6 +261,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
+
+    <!-- Debug Overlay -->
+    <div id="debug-overlay">
+        <div class="debug-title">DEBUG (F3)</div>
+        <div id="debug-fps">FPS: --</div>
+        <div class="debug-section">Player</div>
+        <div id="debug-speed">Speed: 0</div>
+        <div id="debug-position">Pos: 0, 0, 0</div>
+        <div id="debug-angle">Angle: 0</div>
+        <div class="debug-section">Collision</div>
+        <div id="debug-collisions">Boxes: OFF</div>
+    </div>
 
     <!-- HUD -->
     <div id="ui" style="display: none;">
@@ -298,19 +342,19 @@
     <div id="builder-ui">
         <div id="builder-toolbar">
             <h2>MAP BUILDER</h2>
-            <button class="tool-btn active" data-tool="road"><div class="tool-icon icon-road"></div> Asphalt</button>
-            <button class="tool-btn" data-tool="grass"><div class="tool-icon icon-grass"></div> Grass (Eraser)</button>
-            <button class="tool-btn" data-tool="tree"><div class="tool-icon icon-tree"></div> Tree</button>
-            <button class="tool-btn" data-tool="rock"><div class="tool-icon icon-rock"></div> Rock</button>
-            <button class="tool-btn" data-tool="trash"><div class="tool-icon icon-trash"></div> Trash Bag</button>
-            <button class="tool-btn" data-tool="pinktrash"><div class="tool-icon icon-pinktrash"></div> Pink Trash</button>
-            <button class="tool-btn" data-tool="car"><div class="tool-icon icon-car"></div> Enemy Car</button>
-            <button class="tool-btn" data-tool="rager"><div class="tool-icon icon-rager"></div> Road Rager</button>
-            <button class="tool-btn" data-tool="crash"><div class="tool-icon icon-crash"></div> Car Crash</button>
-            <button class="tool-btn" data-tool="ramp"><div class="tool-icon icon-ramp"></div> Car Ramp</button>
-            <button class="tool-btn" data-tool="gas"><div class="tool-icon icon-gas"></div> Gas Can</button>
-            <button class="tool-btn" data-tool="pothole"><div class="tool-icon icon-pothole"></div> Pothole</button>
-            <button class="tool-btn" data-tool="autoshop"><div class="tool-icon icon-autoshop"></div> Auto Shop</button>
+            <button class="tool-btn active" data-tool="road"><div class="tool-icon icon-road"></div> Asphalt <span style="color:#ffcc00;">[1]</span></button>
+            <button class="tool-btn" data-tool="grass"><div class="tool-icon icon-grass"></div> Grass (Eraser) <span style="color:#ffcc00;">[2]</span></button>
+            <button class="tool-btn" data-tool="tree"><div class="tool-icon icon-tree"></div> Tree <span style="color:#ffcc00;">[3]</span></button>
+            <button class="tool-btn" data-tool="rock"><div class="tool-icon icon-rock"></div> Rock <span style="color:#ffcc00;">[4]</span></button>
+            <button class="tool-btn" data-tool="trash"><div class="tool-icon icon-trash"></div> Trash Bag <span style="color:#ffcc00;">[5]</span></button>
+            <button class="tool-btn" data-tool="pinktrash"><div class="tool-icon icon-pinktrash"></div> Pink Trash <span style="color:#ffcc00;">[6]</span></button>
+            <button class="tool-btn" data-tool="car"><div class="tool-icon icon-car"></div> Enemy Car <span style="color:#ffcc00;">[7]</span></button>
+            <button class="tool-btn" data-tool="rager"><div class="tool-icon icon-rager"></div> Road Rager <span style="color:#ffcc00;">[8]</span></button>
+            <button class="tool-btn" data-tool="crash"><div class="tool-icon icon-crash"></div> Car Crash <span style="color:#ffcc00;">[9]</span></button>
+            <button class="tool-btn" data-tool="ramp"><div class="tool-icon icon-ramp"></div> Car Ramp <span style="color:#ffcc00;">[0]</span></button>
+            <button class="tool-btn" data-tool="gas"><div class="tool-icon icon-gas"></div> Gas Can <span style="color:#ffcc00;">[Q]</span></button>
+            <button class="tool-btn" data-tool="pothole"><div class="tool-icon icon-pothole"></div> Pothole <span style="color:#ffcc00;">[E]</span></button>
+            <button class="tool-btn" data-tool="autoshop"><div class="tool-icon icon-autoshop"></div> Auto Shop <span style="color:#ffcc00;">[R]</span></button>
             <div style="flex-grow: 1;"></div>
             <hr style="border-color: #444; margin: 20px 0;">
             <p style="font-size: 12px; color: #aaa; margin-top:0;">Paint your track. Grass will crash your car! Reach the top row to win.</p>
@@ -433,7 +477,7 @@
                 engineOsc.frequency.setTargetAtTime(pitch, audioCtx.currentTime, 0.1);
             }
             
-            if (isGameRunning || gameMode === 'builder') {
+            if (isGameRunning || gameMode === 'builder' || isArcadeRunning) {
                 if (audioCtx.currentTime > nextNoteTime - 0.05) {
                     const isInverted = isGameRunning && Date.now() < invertEndTime;
                     const isBoosted = isGameRunning && Date.now() < boostEndTime;
@@ -1219,8 +1263,47 @@
             showMainMenu('YOU WIN!', subtitle, false);
         }
 
+        // --- Builder Keybind Map ---
+        const builderKeyMap = {
+            '1': 'road',
+            '2': 'grass',
+            '3': 'tree',
+            '4': 'rock',
+            '5': 'trash',
+            '6': 'pinktrash',
+            '7': 'car',
+            '8': 'rager',
+            '9': 'crash',
+            '0': 'ramp',
+            'q': 'gas',
+            'e': 'pothole',
+            'r': 'autoshop'
+        };
+
+        function selectBuilderTool(toolName) {
+            currentTool = toolName;
+            document.querySelectorAll('.tool-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.tool === toolName);
+            });
+        }
+
         // --- Input Handling ---
         window.addEventListener('keydown', (e) => {
+            // F3 Debug Toggle
+            if (e.key === 'F3') {
+                e.preventDefault();
+                toggleDebug();
+                return;
+            }
+
+            // Builder mode keybinds
+            if (gameMode === 'builder') {
+                const tool = builderKeyMap[e.key.toLowerCase()];
+                if (tool) {
+                    selectBuilderTool(tool);
+                    return;
+                }
+            }
             if (e.key === 'a' || e.key === 'A') keys.a = true;
             if (e.key === 'd' || e.key === 'D') keys.d = true;
             if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') keys.up = true;
@@ -1439,11 +1522,109 @@
         }
 
 
+        // --- Debug System ---
+        let debugActive = false;
+        let debugFrameCount = 0;
+        let debugLastTime = performance.now();
+        let debugFPS = 0;
+        let debugCollisionBoxes = [];
+        let debugCarBox = null;
+
+        const debugOverlay = document.getElementById('debug-overlay');
+        const debugFPSEl = document.getElementById('debug-fps');
+        const debugSpeedEl = document.getElementById('debug-speed');
+        const debugPositionEl = document.getElementById('debug-position');
+        const debugAngleEl = document.getElementById('debug-angle');
+        const debugCollisionsEl = document.getElementById('debug-collisions');
+
+        function toggleDebug() {
+            debugActive = !debugActive;
+            debugOverlay.style.display = debugActive ? 'block' : 'none';
+            if (debugActive) {
+                showCollisionBoxes();
+            } else {
+                hideCollisionBoxes();
+            }
+        }
+
+        function createCollisionHelper(sizeX, sizeY, sizeZ, color) {
+            const geo = new THREE.BoxGeometry(sizeX, sizeY, sizeZ);
+            const edges = new THREE.EdgesGeometry(geo);
+            const mat = new THREE.LineBasicMaterial({ color: color });
+            return new THREE.LineSegments(edges, mat);
+        }
+
+        function showCollisionBoxes() {
+            hideCollisionBoxes();
+
+            // Car collision box
+            debugCarBox = createCollisionHelper(2.2 * 2, 2, 3.0 * 2, 0x00ff00);
+            debugCarBox.position.y = 1;
+            car.add(debugCarBox);
+
+            // Obstacle collision boxes
+            const obstacles = gameMode === 'endless' ? endlessObstacles : (gameMode === 'custom' ? customObstacles : []);
+            obstacles.forEach(obs => {
+                if (!obs.visible) return;
+                let hitX = 2.2;
+                let hitZ = 3.0;
+                if (obs.userData.type === 'autoshop') {
+                    hitX = 5.0;
+                    hitZ = 10.0;
+                }
+                const helper = createCollisionHelper(hitX * 2, 2, hitZ * 2, 0xff0000);
+                helper.position.y = 1;
+                obs.add(helper);
+                debugCollisionBoxes.push(helper);
+            });
+
+            debugCollisionsEl.textContent = 'Boxes: ON (' + (obstacles.length + 1) + ')';
+        }
+
+        function hideCollisionBoxes() {
+            if (debugCarBox) {
+                car.remove(debugCarBox);
+                debugCarBox = null;
+            }
+            debugCollisionBoxes.forEach(h => {
+                if (h.parent) h.parent.remove(h);
+            });
+            debugCollisionBoxes = [];
+            debugCollisionsEl.textContent = 'Boxes: OFF';
+        }
+
+        function updateDebugInfo() {
+            if (!debugActive) return;
+
+            // FPS calculation
+            debugFrameCount++;
+            const now = performance.now();
+            const elapsed = now - debugLastTime;
+            if (elapsed >= 500) {
+                debugFPS = Math.round((debugFrameCount / elapsed) * 1000);
+                debugFrameCount = 0;
+                debugLastTime = now;
+            }
+            debugFPSEl.textContent = 'FPS: ' + debugFPS;
+
+            // Player info
+            const displaySpeed = Math.abs(Math.floor((speed / BASE_MAX_SPEED) * 10));
+            debugSpeedEl.textContent = 'Speed: ' + speed.toFixed(4) + ' (' + displaySpeed + ' MPH)';
+            debugPositionEl.textContent = 'Pos: ' + car.position.x.toFixed(1) + ', ' + car.position.y.toFixed(1) + ', ' + car.position.z.toFixed(1);
+            debugAngleEl.textContent = 'Angle: ' + (angle * (180 / Math.PI)).toFixed(1) + '°';
+
+            // Refresh collision boxes periodically (obstacles move/respawn)
+            if (isGameRunning && debugFrameCount === 0) {
+                showCollisionBoxes();
+            }
+        }
+
         // --- Main Game Loop ---
         const speedUI = document.getElementById('speedometer');
 
         function animate() {
             requestAnimationFrame(animate);
+            updateDebugInfo();
 
             if (isGameRunning) {
                 const isInvincible = Date.now() < boostEndTime;
@@ -1691,6 +1872,10 @@
             arcCanvas = document.getElementById('arcadeCanvas');
             arcCtx = arcCanvas.getContext('2d');
             isArcadeRunning = true;
+            initAudio();
+            if (audioCtx) {
+                nextNoteTime = audioCtx.currentTime + 0.1;
+            }
             arcGameOver = false;
             arcCar.x = 185;
             arcObs = [];
@@ -1708,6 +1893,7 @@
         function arcadeLoop() {
             if (!isArcadeRunning) return;
             requestAnimationFrame(arcadeLoop);
+            updateAudio();
 
             if (arcGameOver) return;
 
